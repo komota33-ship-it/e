@@ -17,19 +17,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat parts/Lift-v-ad-Godot-Windows-preview-2026-10-29.zip.[0-9][0-9][0-9] > Lift-v-ad-Godot-Windows-preview-2026-10-29.zip
+          cat parts/Lift-v-ad-Godot-Windows-preview-2026-10-30.zip.[0-9][0-9][0-9] > Lift-v-ad-Godot-Windows-preview-2026-10-30.zip
           sha256sum -c SHA256.txt
-          unzip -t Lift-v-ad-Godot-Windows-preview-2026-10-29.zip >/dev/null
+          unzip -t Lift-v-ad-Godot-Windows-preview-2026-10-30.zip >/dev/null
       - name: Publish preview release
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          tag=windows-preview-2026-10-29
-          archive=Lift-v-ad-Godot-Windows-preview-2026-10-29.zip
+          tag=windows-preview-2026-10-30
+          archive=Lift-v-ad-Godot-Windows-preview-2026-10-30.zip
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" "$archive" SHA256.txt --clobber
           else
-            gh release create "$tag" "$archive" SHA256.txt --target "$GITHUB_SHA" --title "Лифт в ад — Windows preview (29.10.2026)" --notes-file RELEASE_NOTES.md --prerelease
+            gh release create "$tag" "$archive" SHA256.txt --target "$GITHUB_SHA" --title "Лифт в ад — Windows preview (30.10.2026)" --notes-file RELEASE_NOTES.md --prerelease
           fi
