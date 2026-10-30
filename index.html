@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#090e13" />
+    <title>Лифт в ад — Elevator to Hell</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <a class="logo" href="/" aria-label="Лифт в ад"
+          >ЛИФТ <span>В АД</span><small>ELEVATOR TO HELL</small></a
+        >
+        <div class="header-note"><i></i> ПОСЛЕДНИЙ СИГНАЛ · 03:47</div>
+        <div class="header-actions">
+          <button id="progress-toggle">
+            ЛАБОРАТОРИЯ · <b id="progress-balance">0</b> ДНК
+          </button>
+          <button id="inventory-toggle" title="Рюкзак · I">РЮКЗАК · I</button>
+          <button id="journal-toggle" title="Найденные записи · J">
+            ◧ АРХИВ · <b id="journal-total">0</b>/30
+          </button>
+          <button id="sound" title="Звук" aria-label="Включить звук">
+            ЗВУК: ВЫКЛ</button
+          ><button id="pause" title="Пауза" aria-label="Пауза">Ⅱ</button>
+        </div>
+      </header>
+      <section class="stage menu-background" aria-label="Игровая зона">
+        <canvas
+          id="game"
+          tabindex="0"
+          aria-label="Игра с видом сбоку. A и D или стрелки влево и вправо для движения, мышь или F для стрельбы, E для взаимодействия."
+        ></canvas>
+        <div class="hud">
+          <div class="floor-block">
+            <span class="tiny">ВЫ НАХОДИТЕСЬ</span>
+            <div>
+              <b id="floor">50</b
+              ><span
+                ><span id="floor-kind">ЭТАЖ</span><br /><small id="location"
+                  >КРЫША</small
+                ></span
+              >
+            </div>
+          </div>
+          <div class="stats">
+            <div class="stat-line">
+              <span
+                class="stat-symbol hud-pictogram hp-icon"
+                aria-hidden="true"
+              ></span>
+              <div class="meter">
+                <i id="hp-fill"></i
+                ><span>ЗДОРОВЬЕ <b id="hp">100 / 100</b></span>
+              </div>
+            </div>
+            <div class="stat-line">
+              <span
+                class="stat-symbol hud-pictogram ammo-icon"
+                aria-hidden="true"
+              ></span>
+              <div class="meter ammo-meter">
+                <i id="ammo-fill"></i
+                ><span>ПАТРОНЫ <b id="ammo">12 / 48</b></span>
+              </div>
+            </div>
+            <div class="stat-line">
+              <span
+                class="stat-symbol hud-pictogram stamina-icon"
+                aria-hidden="true"
+              ></span>
+              <div class="meter stamina-meter">
+                <i id="stamina-fill"></i
+                ><span>ВЫНОСЛИВОСТЬ <b id="stamina">100 / 100</b></span>
+              </div>
+            </div>
+            <div class="stat-line">
+              <span
+                class="stat-symbol hud-pictogram infection-icon"
+                aria-hidden="true"
+              ></span>
+              <div class="meter infection-meter">
+                <i id="infection-fill"></i
+                ><span>ЗАРАЖЕНИЕ <b id="infection">0%</b></span>
+              </div>
+            </div>
+            <div class="stat-line">
+              <span
+                class="stat-symbol hud-pictogram noise-icon"
+                aria-hidden="true"
+              ></span>
+              <div class="meter noise-meter">
+                <i id="noise-fill"></i><span>ШУМ <b id="noise">0 / 90</b></span>
+              </div>
+            </div>
+            <div id="infection-state" class="weapon-label"></div>
+            <div id="noise-state" class="weapon-label"></div>
+            <div id="dodge-label" class="weapon-label">Q · УКЛОНЕНИЕ</div>
+            <div id="load-label"></div>
+            <div id="weapon-label" class="weapon-label"></div>
+            <div id="combat-state" class="weapon-label danger" hidden>
+              БЕРСЕРК · +50% УРОНА
+            </div>
+            <div id="revive-state" class="weapon-label" hidden></div>
+            <div class="stat-caption">
+              <i></i><span id="threat">ЗАРАЖЁННАЯ ЗОНА</span>
+            </div>
+          </div>
+        </div>
+        <div class="mission">
+          <span class="mission-marker">◇</span>
+          <div>
+            <span class="tiny">ЗАДАЧА</span>
+            <p id="objective">Найти припасы и спуститься с крыши</p>
+            <p id="stealth-label">НЕ ОБНАРУЖЕН</p>
+          </div>
+        </div>
+        <div id="toast" role="status"></div>
+        <div
+          id="story-radio"
+          class="story-radio"
+          role="status"
+          aria-live="polite"
+          hidden
+        >
+          <span class="radio-speaker"></span>
+          <p class="radio-text"></p>
+        </div>
+        <div id="prompt"></div>
+        <div
+          id="search-progress"
+          role="progressbar"
+          aria-label="Обыск"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+          hidden
+        >
+          <div class="search-heading">
+            <span>◈ &nbsp; ОБЫСК</span><b id="search-percent">0%</b>
+          </div>
+          <div class="search-track"><i id="search-fill"></i></div>
+          <small>НЕ ДВИГАЙТЕСЬ · E — ПРОДОЛЖИТЬ</small>
+        </div>
+        <div id="loot-preview" hidden>
+          <span class="tiny">ВНИМАТЕЛЬНЫЙ · ОСМОТР</span>
+          <p id="loot-preview-content"></p>
+          <small id="loot-preview-action"></small>
+        </div>
+        <div class="quick-slots">
+          <button id="grenade" title="Граната · G">
+            <small>1</small><span>◉</span><b id="grenades">2</b
+            ><em>ГРАНАТА</em></button
+          ><button id="heal" title="Аптечка · H">
+            <small>2</small><span class="med-cross">✚</span><b id="meds">2</b
+            ><em>АПТЕЧКА</em></button
+          ><button id="flashlight" class="selected" title="Фонарик · L">
+            <small>3</small><span>◈</span><em>ФОНАРИК</em></button
+          ><button id="knife" title="Нож · V">
+            <small>4</small><span>╱</span><em>НОЖ</em>
+          </button>
+        </div>
+        <div class="touch-controls">
+          <div class="move-buttons">
+            <button id="left" aria-label="Влево">←</button
+            ><button id="right" aria-label="Вправо">→</button>
+          </div>
+          <div class="action-buttons">
+            <button id="interact" aria-label="Взаимодействие">◇</button
+            ><button id="reload" aria-label="Перезарядить">↻</button
+            ><button id="fire" aria-label="Стрелять">⌖</button>
+          </div>
+        </div>
+        <div id="overlay" class="overlay">
+          <div class="intro">
+            <div class="intro-kicker">
+              <span></span> ПИКСЕЛЬНЫЙ SURVIVAL · ВИД СБОКУ
+            </div>
+            <p class="intro-chapter" id="overlay-chapter">
+              БАШНЯ АТЛАС · 50 ЭТАЖЕЙ ДО B1
+            </p>
+            <h1 id="overlay-title">ЛИФТ<br /><em>В АД</em></h1>
+            <figure id="ending-visual" class="ending-visual" hidden>
+              <img id="ending-image" alt="" />
+              <figcaption>ИСХОД СПУСКА · ИСТОРИЯ НИЖЕ ↓</figcaption>
+            </figure>
+            <div id="ending-story" class="ending-story" hidden></div>
+            <p class="intro-copy" id="overlay-copy">
+              Город пал за сутки. Ты остался в башне.<br />Спускайся через
+              офисы, лаборатории и паркинг.<br />В бункере B1 ждёт Объект 0.
+            </p>
+            <button id="start" class="primary">
+              НАЧАТЬ СПУСК <span>↓</span></button
+            ><button id="continue" class="secondary" hidden>ПРОДОЛЖИТЬ</button>
+            <div id="menu-actions" class="menu-actions">
+              <button id="menu-save" type="button" hidden>
+                СОХРАНИТЬ ПРОГРЕСС
+              </button>
+              <button id="menu-settings" type="button">НАСТРОЙКИ</button>
+              <button id="menu-main" type="button" hidden>
+                В ГЛАВНОЕ МЕНЮ
+              </button>
+              <button id="menu-quit" type="button">ВЫЙТИ ИЗ ИГРЫ</button>
+            </div>
+            <div id="settings-panel" class="settings-panel" hidden>
+              <h2>НАСТРОЙКИ</h2>
+              <label class="setting-row"
+                ><span>ЗВУК</span><input id="setting-sound" type="checkbox"
+              /></label>
+              <label class="setting-row"
+                ><span>ГРОМКОСТЬ</span
+                ><input
+                  id="setting-volume"
+                  type="range"
+                  min="0"
+                  max="100"
+                  value="50"
+              /></label>
+              <label class="setting-row"
+                ><span>МУЗЫКА</span
+                ><input
+                  id="setting-music"
+                  type="range"
+                  min="0"
+                  max="100"
+                  value="30"
+              /></label>
+              <label class="setting-row"
+                ><span>ТРЯСКА КАМЕРЫ</span
+                ><input id="setting-shake" type="checkbox"
+              /></label>
+              <button id="settings-back" type="button">НАЗАД</button>
+            </div>
+            <div class="intro-foot">
+              <span>50</span> ЭТАЖЕЙ <i></i><span>6</span> ТИПОВ ЗАРАЖЁННЫХ
+              <i></i> ОДИН ВЫХОД
+            </div>
+          </div>
+          <div class="scene-label">
+            <span>ОБЪЕКТ № 17</span><b>ЭВАКУАЦИЯ<br />ОТМЕНЕНА</b
+            ><small>55°45′ С. Ш. / 37°37′ В. Д.</small>
+          </div>
+        </div>
+        <section
+          id="inventory"
+          class="inventory-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="inventory-heading"
+          hidden
+        >
+          <div class="inventory-shell">
+            <div class="inventory-header">
+              <div>
+                <span class="tiny">СНАРЯЖЕНИЕ КУРЬЕРА</span>
+                <h2 id="inventory-heading">РЮКЗАК</h2>
+              </div>
+              <div>
+                <span id="inventory-health"></span
+                ><button id="inventory-close" aria-label="Закрыть рюкзак">
+                  ЗАКРЫТЬ · ESC
+                </button>
+              </div>
+            </div>
+            <p id="inventory-load" role="status"></p>
+            <div id="equipment-slots" aria-label="Надетое снаряжение"></div>
+            <div class="inventory-layout">
+              <aside id="loot-panel" hidden>
+                <h3 id="loot-title">НАЙДЕНО</h3>
+                <div id="loot-list"></div>
+                <button id="loot-all">ЗАБРАТЬ ВСЁ</button>
+              </aside>
+              <div class="inventory-pack">
+                <div class="inventory-toolbar">
+                  <span id="inventory-capacity"></span
+                  ><button id="inventory-sort">УПОРЯДОЧИТЬ</button>
+                </div>
+                <div id="weapon-slots" aria-label="Быстрое оружие"></div>
+                <div class="quick-assign-heading">
+                  БЫСТРЫЕ СЛОТЫ · выберите предмет и нажмите слот или перетащите
+                  его
+                </div>
+                <div
+                  id="quick-assign"
+                  aria-label="Настройка быстрых слотов"
+                ></div>
+                <button id="quick-assign-light" type="button">
+                  ◈ ПОЛОЖИТЬ ФОНАРЬ В СЛОТ
+                </button>
+                <div
+                  id="inventory-grid"
+                  class="inventory-grid"
+                  aria-label="Рюкзак, 6 столбцов и 5 строк"
+                ></div>
+                <p class="inventory-hint">
+                  Перетащить — переместить · R — повернуть · Двойной щелчок —
+                  использовать
+                </p>
+              </div>
+              <aside class="item-details">
+                <div id="item-preview"></div>
+                <h3 id="item-name"></h3>
+                <p id="item-description"></p>
+                <div class="item-actions">
+                  <button id="item-use">Использовать</button
+                  ><button id="item-rotate">Повернуть · R</button
+                  ><button id="item-combine">Объединить</button
+                  ><button id="item-repair">Ремонтировать</button
+                  ><button id="item-drop">Оставить на полу</button>
+                </div>
+                <div id="attachment-panel" hidden></div>
+              </aside>
+            </div>
+            <details class="craft-panel">
+              <summary>ИЗГОТОВЛЕНИЕ · РЕЦЕПТЫ</summary>
+              <p id="craft-status"></p>
+              <div id="craft-recipes"></div>
+            </details>
+            <p id="inventory-message" role="status"></p>
+          </div>
+        </section>
+        <section
+          id="journal"
+          class="journal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="journal-heading"
+          hidden
+        >
+          <div class="journal-shell">
+            <header class="journal-header">
+              <div>
+                <span class="tiny">БАШНЯ АТЛАС · УЦЕЛЕВШИЕ СВИДЕТЕЛЬСТВА</span>
+                <h2 id="journal-heading">АРХИВ</h2>
+              </div>
+              <div>
+                <span id="journal-count">0 / 30</span
+                ><button id="journal-close" type="button">ЗАКРЫТЬ · ESC</button>
+              </div>
+            </header>
+            <div class="journal-layout">
+              <nav id="journal-list" aria-label="Найденные записи"></nav>
+              <article class="journal-document">
+                <span class="journal-seal"
+                  >◈ &nbsp; НЕЗАВИСИМАЯ КОПИЯ · НЕКРОС-7</span
+                >
+                <h3 id="journal-title">ЗАПИСЬ НЕ НАЙДЕНА</h3>
+                <p id="journal-author"></p>
+                <p id="journal-body"></p>
+              </article>
+            </div>
+            <p class="journal-footer">
+              Найденные записи сохраняются между спусками. Ищите их в столах и
+              шкафах.
+            </p>
+          </div>
+        </section>
+        <section
+          id="ending-choice"
+          class="ending-choice"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ending-heading"
+          hidden
+        >
+          <div class="ending-shell">
+            <span class="tiny">БАШНЯ АТЛАС · БУНКЕР B1</span>
+            <h2 id="ending-heading">ПОСЛЕДНИЙ ШЛЮЗ</h2>
+            <p>Объект 0 повержен. Куда направить оставшуюся энергию?</p>
+            <div id="ending-options"></div>
+            <button id="ending-close" type="button">
+              ВЕРНУТЬСЯ К ШЛЮЗУ · ESC
+            </button>
+          </div>
+        </section>
+        <section
+          id="progression"
+          class="progression-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="progress-heading"
+          hidden
+        >
+          <div class="progression-shell">
+            <div class="inventory-header">
+              <div>
+                <span class="tiny">НЕКРОС-7 · СОХРАНЁННАЯ ПАМЯТЬ</span>
+                <h2 id="progress-heading">ЛАБОРАТОРИЯ</h2>
+              </div>
+              <button id="progress-close">ЗАКРЫТЬ · ESC</button>
+            </div>
+            <div class="progress-summary">
+              <div>
+                <strong id="progress-dna">0</strong><span>ДНК ДОСТУПНО</span>
+              </div>
+              <p>
+                Вирус восстанавливает тело после смерти.<br />Улучшения остаются
+                с тобой в следующем спуске.
+              </p>
+            </div>
+            <p id="progress-stats"></p>
+            <div id="progress-synergy" aria-live="polite"></div>
+            <label class="progress-filter"
+              >ВЕТКА УЛУЧШЕНИЙ
+              <select id="progress-branch" aria-label="Ветка улучшений">
+                <option value="all">Все ветки</option>
+                <option value="БОЕЦ">Боец</option>
+                <option value="ВЫЖИВШИЙ">Выживший</option>
+                <option value="МАРОДЁР">Мародёр</option>
+                <option value="ТЕХНИК">Техник</option>
+                <option value="ПСИХО">Психо</option>
+              </select>
+            </label>
+            <div id="perk-list" class="perk-list"></div>
+            <p id="progress-message" role="status"></p>
+          </div>
+        </section>
+        <div class="vignette"></div>
+      </section>
+      <footer>
+        <div class="keyboard-help">
+          <span>A D / ← →</span> ДВИЖЕНИЕ <span>МЫШЬ / ЛКМ</span> ПРИЦЕЛ / ОГОНЬ
+          <span>R</span> ПЕРЕЗАРЯДКА <span>E</span> ДЕЙСТВИЕ
+          <span>I</span> РЮКЗАК <span>J</span> АРХИВ <span>SHIFT</span> БЕГ
+          <span>Q</span> УКЛОНЕНИЕ
+        </div>
+        <div class="mobile-help">
+          УДЕРЖИВАЙ ⌖ ДЛЯ СТРЕЛЬБЫ · ◇ ОБЫСКАТЬ / СПУСТИТЬСЯ
+        </div>
+        <span class="build" id="checkpoint-label">ЧЕКПОИНТ: 50 <i></i></span>
+      </footer>
+    </main>
+    <script type="module" src="/game.js"></script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+dist/*
+!dist/.gdignore
+node_modules/
+__pycache__/
+.godot/

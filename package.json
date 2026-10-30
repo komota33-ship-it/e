@@ -1,0 +1,12 @@
+{
+  "name": "elevator-to-hell",
+  "version": "0.11.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.mjs",
+    "build": "node build.mjs",
+    "check": "node --check attachments.js && node --check backpacks.js && node --check equipment.js && node --check awareness.js && node --check download.mjs && node --check hazards.js && node --check crafting.js && node --check progression.js && node --check journal.js && node --check journal-ui.js && node --check story.js && node --check story-ui.js && node --check endings.js && node --check ending-ui.js && node --check progression-ui.js && node --check survival.js && node --check sector-layouts.js && node --check gait.js && node --check level-layouts.js && node --check inventory.js && node --check inventory-ui.js && node --check depth.js && node --check dressing.js && node --check quickslots.js && node --check animation.js && node --check combat.js && node --check atmosphere.js && node --check layouts.js && node --check game.js && node --check server.mjs && node --check build.mjs",
+    "test": "node tests/inventory.test.mjs && node tests/journal.test.mjs && node tests/story.test.mjs && node tests/endings.test.mjs && node tests/quickslots.test.mjs && node tests/gait.test.mjs && node tests/depth.test.mjs && node tests/windows.test.mjs && node tests/dressing.test.mjs && node tests/atmosphere.test.mjs && node tests/animation.test.mjs && node tests/progression.test.mjs && node tests/hazards.test.mjs && node tests/awareness.test.mjs && node tests/equipment.test.mjs && node tests/backpacks.test.mjs && node tests/looting.test.mjs && node tests/luck.test.mjs && node tests/combat_perks.test.mjs && node tests/survival_perks.test.mjs && node tests/traps.test.mjs && node tests/attachments.test.mjs"
+  },
+  "type": "module"
+}
